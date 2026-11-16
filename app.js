@@ -159,6 +159,7 @@ function switchView(name) {
     v.classList.toggle("active", v.id === `view-${name}`);
   });
   if (name === "dashboard") renderDashboard();
+  if (name === "analytics") renderAnalytics();
   if (name === "review") renderReview();
 }
 
@@ -201,6 +202,7 @@ function readForm() {
     size: Number($("t-size").value),
     contract,
     emotion: $("t-emotion").value,
+    setup: $("t-setup").value.trim(),
     date: $("t-date").value || todayStr(),
     notes: $("t-notes").value.trim(),
     mistakes: [...selectedMistakes],
@@ -263,6 +265,7 @@ function submitTrade(e) {
   $("t-exit").value = "";
   $("t-size").value = "";
   $("t-notes").value = "";
+  $("t-setup").value = "";
   selectedMistakes = new Set();
   renderMistakeChips();
   updateLiveCalc();
@@ -515,6 +518,7 @@ function drawTilt() {
 }
 
 function renderDashboard() {
+  $("getting-started").hidden = trades.length > 0;
   const s = computeStats(trades);
   $("d-trades").textContent = s.total;
   $("d-winrate").textContent = s.winRate === null ? "—" : `${fmtNum(s.winRate, 1)}%`;
@@ -526,6 +530,169 @@ function renderDashboard() {
   netEl.classList.toggle("negative", s.net < 0);
   drawEquity();
   drawTilt();
+}
+
+/* ---------- Advanced analytics (paid features elsewhere — free here) ---------- */
+function buildTable(el, headers, rows) {
+  el.innerHTML = "";
+  const thead = document.createElement("thead");
+  const trh = document.createElement("tr");
+  for (const h of headers) {
+    const th = document.createElement("th");
+    th.textContent = h;
+    trh.appendChild(th);
+  }
+  thead.appendChild(trh);
+  el.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+    for (const cell of row) {
+      const td = document.createElement("td");
+      if (cell && typeof cell === "object") {
+        td.textContent = cell.text;
+        if (cell.cls) td.className = cell.cls;
+      } else {
+        td.textContent = cell;
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  el.appendChild(tbody);
+}
+
+const signed = (v) => `${v >= 0 ? "+" : ""}${fmtMoney(v)}`;
+const netCell = (v) => ({ text: signed(v), cls: `num ${v >= 0 ? "pos" : "neg"}` });
+const pctCell = (p) => (p === null ? "—" : { text: `${fmtNum(p, 1)}%`, cls: "num" });
+
+function streakStats() {
+  // chronological order, oldest first
+  const chrono = [...trades].reverse().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  let bestWin = 0;
+  let worstLoss = 0;
+  let curWin = 0;
+  let curLoss = 0;
+  for (const t of chrono) {
+    if (t.pnl > 0) {
+      curWin += 1;
+      curLoss = 0;
+      bestWin = Math.max(bestWin, curWin);
+    } else if (t.pnl < 0) {
+      curLoss += 1;
+      curWin = 0;
+      worstLoss = Math.max(worstLoss, curLoss);
+    }
+  }
+  const last = chrono[chrono.length - 1];
+  let current = 0;
+  if (last) {
+    if (last.pnl > 0) {
+      for (let i = chrono.length - 1; i >= 0 && chrono[i].pnl > 0; i--) current += 1;
+    } else if (last.pnl < 0) {
+      for (let i = chrono.length - 1; i >= 0 && chrono[i].pnl < 0; i--) current -= 1;
+    }
+  }
+  return { current, bestWin, worstLoss };
+}
+
+function maxDrawdown() {
+  const pts = equityPoints();
+  let peak = 0;
+  let dd = 0;
+  for (const p of pts) {
+    peak = Math.max(peak, p.cum);
+    dd = Math.max(dd, peak - p.cum);
+  }
+  return dd;
+}
+
+function renderAnalytics() {
+  // Streaks + drawdown
+  const st = streakStats();
+  $("a-streak-now").textContent =
+    st.current === 0 ? "—" : st.current > 0 ? `${st.current}W` : `${Math.abs(st.current)}L`;
+  $("a-streak-win").textContent = st.bestWin ? `${st.bestWin}W` : "—";
+  $("a-streak-loss").textContent = st.worstLoss ? `${st.worstLoss}L` : "—";
+  const dd = maxDrawdown();
+  $("a-dd").textContent = dd > 0 ? `-${fmtMoney(dd)}` : "—";
+
+  // Day of week
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const dowRows = days.map((label, i) => {
+    const list = trades.filter((t) => new Date(t.date + "T00:00:00").getDay() === (i + 1) % 7);
+    const s = computeStats(list);
+    if (!s.total) return [label, { text: "—", cls: "dim" }, { text: "—", cls: "dim" }, { text: "—", cls: "dim" }];
+    return [label, String(s.total), pctCell(s.winRate), netCell(s.net)];
+  });
+  buildTable($("tbl-dow"), ["Day", "Trades", "Win rate", "Net P&L"], dowRows);
+
+  // Market
+  const marketRows = Object.keys(MARKETS).map((key) => {
+    const list = trades.filter((t) => t.market === key);
+    const s = computeStats(list);
+    if (!s.total) return [MARKETS[key].label, { text: "—", cls: "dim" }, { text: "—", cls: "dim" }, { text: "—", cls: "dim" }];
+    return [MARKETS[key].label, String(s.total), pctCell(s.winRate), netCell(s.net)];
+  });
+  buildTable($("tbl-market"), ["Market", "Trades", "Win rate", "Net P&L"], marketRows);
+
+  // Symbols (top by |net|)
+  const bySym = {};
+  for (const t of trades) {
+    bySym[t.symbol] = bySym[t.symbol] || { net: 0, count: 0, wins: 0 };
+    bySym[t.symbol].net += t.pnl;
+    bySym[t.symbol].count += 1;
+    if (t.pnl > 0) bySym[t.symbol].wins += 1;
+  }
+  const symRows = Object.entries(bySym)
+    .sort((a, b) => Math.abs(b[1].net) - Math.abs(a[1].net))
+    .slice(0, 6)
+    .map(([sym, s]) => [
+      sym,
+      String(s.count),
+      pctCell((s.wins / s.count) * 100),
+      netCell(s.net),
+    ]);
+  buildTable($("tbl-symbols"), ["Symbol", "Trades", "Win rate", "Net P&L"], symRows);
+
+  // Setups (the feature competitors paywall)
+  const bySetup = {};
+  for (const t of trades) {
+    const name = (t.setup || "").trim();
+    if (!name) continue;
+    const key = name[0].toUpperCase() + name.slice(1);
+    bySetup[key] = bySetup[key] || { net: 0, count: 0, wins: 0, rs: [] };
+    bySetup[key].net += t.pnl;
+    bySetup[key].count += 1;
+    if (t.pnl > 0) bySetup[key].wins += 1;
+    const r = tradeR(t);
+    if (r !== null) bySetup[key].rs.push(r);
+  }
+  const setupEntries = Object.entries(bySetup).sort((a, b) => b[1].net - a[1].net);
+  const setupRows = setupEntries.map(([name, s]) => {
+    const avgR = s.rs.length ? s.rs.reduce((x, y) => x + y, 0) / s.rs.length : null;
+    return [
+      name,
+      String(s.count),
+      pctCell((s.wins / s.count) * 100),
+      avgR === null ? "—" : { text: `${avgR >= 0 ? "+" : ""}${fmtNum(avgR, 2)}R`, cls: `num ${avgR >= 0 ? "pos" : "neg"}` },
+      netCell(s.net),
+    ];
+  });
+  buildTable($("tbl-setups"), ["Setup", "Trades", "Win rate", "Avg R", "Net P&L"], setupRows);
+  $("setups-empty").hidden = setupEntries.length > 0;
+}
+
+function refreshSetupList() {
+  const names = [...new Set(trades.map((t) => (t.setup || "").trim()).filter(Boolean))];
+  const dl = $("setup-list");
+  dl.innerHTML = "";
+  for (const n of names.slice(0, 20)) {
+    const opt = document.createElement("option");
+    opt.value = n;
+    dl.appendChild(opt);
+  }
 }
 
 /* ---------- Risk Gate ---------- */
@@ -670,13 +837,14 @@ function exportJSON() {
 }
 
 function exportCSV() {
-  const head = "date,market,symbol,direction,entry,stop,target,exit,size,contract,pnl,r,emotion,mistakes,notes";
+  const head = "date,market,symbol,direction,setup,entry,stop,target,exit,size,contract,pnl,r,emotion,mistakes,notes";
   const rows = [...trades]
     .reverse()
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
     .map((t) =>
       [
-        t.date, t.market, t.symbol, t.direction, t.entry, t.stop || "", t.target || "",
+        t.date, t.market, t.symbol, t.direction, (t.setup || "").replace(/[\r\n,]/g, " "),
+        t.entry, t.stop || "", t.target || "",
         t.exit, t.size, t.contract, t.pnl, tradeR(t) === null ? "" : Number(tradeR(t).toFixed(3)),
         t.emotion, (t.mistakes || []).join("|"), (t.notes || "").replace(/[\r\n,]/g, " "),
       ].join(",")
@@ -685,27 +853,98 @@ function exportCSV() {
   toast("CSV exported 📤");
 }
 
+function parseCsvTrades(text) {
+  const lines = text.replace(/\r/g, "").split("\n").filter((l) => l.trim());
+  if (lines.length < 2) throw new Error("empty csv");
+  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+  const idx = (name) => headers.indexOf(name);
+
+  const out = [];
+  for (const line of lines.slice(1)) {
+    const cols = line.split(",");
+    const get = (name) => (idx(name) >= 0 ? (cols[idx(name)] || "").trim() : "");
+    const num = (name) => {
+      const v = Number(get(name));
+      return Number.isFinite(v) ? v : 0;
+    };
+
+    const market = MARKETS[get("market")] ? get("market") : "crypto";
+    const dirRaw = get("direction").toLowerCase();
+    const direction = dirRaw === "short" || dirRaw === "sell" ? "short" : "long";
+    const symbol = get("symbol").toUpperCase();
+    const entry = num("entry");
+    const exit = num("exit");
+    if (!symbol || !(entry > 0)) continue;
+
+    const contract = num("contract") || MARKETS[market].contract;
+    const emotion = EMOTIONS[get("emotion")] ? get("emotion") : "neutral";
+    const mistakes = get("mistakes") ? get("mistakes").split("|").filter(Boolean) : [];
+
+    const t = {
+      id: uid(),
+      date: get("date") || todayStr(),
+      market,
+      symbol,
+      direction,
+      setup: get("setup"),
+      entry,
+      stop: num("stop"),
+      target: num("target"),
+      exit,
+      size: num("size"),
+      contract,
+      emotion,
+      mistakes,
+      notes: get("notes"),
+    };
+    t.pnl = Number(tradePnl(t).toFixed(2));
+    out.push(t);
+  }
+  return out;
+}
+
 function importFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
+    const text = String(reader.result);
     try {
-      const data = JSON.parse(reader.result);
-      const incoming = Array.isArray(data) ? data : data.trades;
-      if (!Array.isArray(incoming)) throw new Error("bad format");
-      const clean = incoming.filter(
-        (t) => t && t.symbol && Number.isFinite(Number(t.entry)) && Number.isFinite(Number(t.exit))
-      );
-      if (!clean.length) throw new Error("no valid trades");
-      if (!confirm(`Replace current journal with ${clean.length} imported trades?`)) return;
-      trades = clean;
-      if (data.settings && typeof data.settings === "object") {
-        settings = Object.assign({}, DEFAULT_SETTINGS, data.settings);
+      let incoming = [];
+      let settingsPayload = null;
+      let mode = "";
+
+      if (text.trim().startsWith("{")) {
+        const data = JSON.parse(text);
+        incoming = Array.isArray(data) ? data : data.trades || [];
+        settingsPayload = data.settings || null;
+        mode = "backup";
+      } else {
+        incoming = parseCsvTrades(text);
+        mode = "csv";
       }
+
+      if (!Array.isArray(incoming) || !incoming.length) throw new Error("no valid trades");
+
+      if (mode === "backup") {
+        const clean = incoming.filter(
+          (t) => t && t.symbol && Number.isFinite(Number(t.entry)) && Number.isFinite(Number(t.exit))
+        );
+        if (!clean.length) throw new Error("no valid trades");
+        if (!confirm(`Replace current journal with ${clean.length} imported trades?`)) return;
+        trades = clean;
+        if (settingsPayload && typeof settingsPayload === "object") {
+          settings = Object.assign({}, DEFAULT_SETTINGS, settingsPayload);
+        }
+        toast(`Backup restored — ${clean.length} trades ✓`);
+      } else {
+        if (!confirm(`Append ${incoming.length} imported trades to your journal?`)) return;
+        trades = [...incoming].reverse().concat(trades); // newest first
+        toast(`${incoming.length} trades imported from CSV ✓`);
+      }
+
       persist();
       renderAll();
-      toast(`Restored ${clean.length} trades ✓`);
     } catch {
-      toast("Invalid backup file ⚠️");
+      toast("Invalid file — use a TradeForge JSON backup or CSV export ⚠️");
     }
   };
   reader.readAsText(file);
@@ -859,9 +1098,10 @@ document.addEventListener("keydown", (e) => {
   if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA") return;
   const k = e.key.toLowerCase();
   if (k === "1") switchView("dashboard");
-  else if (k === "2") switchView("journal");
-  else if (k === "3") switchView("risk");
-  else if (k === "4") switchView("review");
+  else if (k === "2") switchView("analytics");
+  else if (k === "3") switchView("journal");
+  else if (k === "4") switchView("risk");
+  else if (k === "5") switchView("review");
 });
 
 window.addEventListener("resize", () => {
@@ -871,8 +1111,10 @@ window.addEventListener("resize", () => {
 /* ---------- Boot ---------- */
 function renderAll() {
   renderDashboard();
+  renderAnalytics();
   renderJournal();
   renderReview();
+  refreshSetupList();
 }
 
 function init() {

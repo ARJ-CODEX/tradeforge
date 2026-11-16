@@ -32,6 +32,7 @@
     <!-- ======= View tabs ======= -->
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button class="tab-btn active" data-view="dashboard" role="tab" aria-selected="true">📊 Dashboard</button>
+      <button class="tab-btn" data-view="analytics" role="tab" aria-selected="false">📈 Analytics</button>
       <button class="tab-btn" data-view="journal" role="tab" aria-selected="false">📒 Journal</button>
       <button class="tab-btn" data-view="risk" role="tab" aria-selected="false">🚦 Risk Gate</button>
       <button class="tab-btn" data-view="review" role="tab" aria-selected="false">🔍 Review</button>
@@ -39,6 +40,14 @@
 
     <!-- ======= Dashboard ======= -->
     <section class="view active" id="view-dashboard" aria-label="Dashboard">
+      <div class="panel getting-started" id="getting-started" hidden>
+        <h3 class="panel-title">⚡ New here? Forge your discipline in 3 steps</h3>
+        <ol class="steps">
+          <li><b>⚙️ Settings</b> — set your account balance and risk limit (top right).</li>
+          <li><b>🚦 Risk Gate</b> — before every entry, forge your position size there.</li>
+          <li><b>📒 Journal</b> — log the result in under 30 seconds, tag emotion &amp; mistakes.</li>
+        </ol>
+      </div>
       <div class="stat-grid">
         <div class="stat-card"><span class="stat-value" id="d-trades">0</span><span class="stat-label">Trades</span></div>
         <div class="stat-card"><span class="stat-value" id="d-winrate">—</span><span class="stat-label">Win rate</span></div>
@@ -65,6 +74,34 @@
           </div>
         </div>
         <p class="insight" id="tilt-insight"></p>
+      </div>
+    </section>
+
+    <!-- ======= Analytics ======= -->
+    <section class="view" id="view-analytics" aria-label="Advanced analytics">
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-value" id="a-streak-now">—</span><span class="stat-label">Current streak</span></div>
+        <div class="stat-card"><span class="stat-value" id="a-streak-win">—</span><span class="stat-label">Best win streak</span></div>
+        <div class="stat-card"><span class="stat-value" id="a-streak-loss">—</span><span class="stat-label">Worst loss streak</span></div>
+        <div class="stat-card gold"><span class="stat-value" id="a-dd">—</span><span class="stat-label">Max drawdown</span></div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">Performance by day of week</h3>
+        <table class="analytics-table" id="tbl-dow"></table>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Performance by market</h3>
+        <table class="analytics-table" id="tbl-market"></table>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Top symbols</h3>
+        <table class="analytics-table" id="tbl-symbols"></table>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Performance by setup — competitors charge for this, here it's free</h3>
+        <table class="analytics-table" id="tbl-setups"></table>
+        <p class="list-empty" id="setups-empty">Tag trades with a setup name (e.g. "breakout") in the journal to unlock this table.</p>
       </div>
     </section>
 
@@ -109,6 +146,9 @@
               <option value="impulsive">Impulsive</option>
             </select>
           </label>
+          <label>Setup (optional)
+            <input type="text" id="t-setup" list="setup-list" placeholder="breakout, reversal…" maxlength="40" />
+          </label>
           <label>Date
             <input type="date" id="t-date" required />
           </label>
@@ -116,6 +156,7 @@
             <input type="text" id="t-notes" placeholder="What did you see?" maxlength="140" />
           </label>
         </div>
+        <datalist id="setup-list"></datalist>
         <div class="form-row chips-row">
           <span class="chips-label">Mistakes:</span>
           <span class="chips" id="t-mistakes"></span>
@@ -233,7 +274,7 @@
       <h3 class="panel-title">You own your data (Obsidian model)</h3>
       <div class="io-row">
         <button class="btn btn-ghost btn-tiny" id="export-json">⬇ Backup JSON</button>
-        <button class="btn btn-ghost btn-tiny" id="import-json">⬆ Restore JSON</button>
+        <button class="btn btn-ghost btn-tiny" id="import-json">⬆ Import JSON / CSV</button>
         <button class="btn btn-ghost btn-tiny" id="export-csv">⬇ Export CSV</button>
         <input type="file" id="import-file" accept=".json,.csv" hidden />
       </div>

@@ -24,9 +24,12 @@ Retail traders' #1 pain isn't analysis — it's **discipline**: emotional positi
 ## ✨ Features
 
 - 📊 **Dashboard** — win rate, total R, profit factor, net P&L, and a live equity curve
+- 📈 **Advanced analytics — free** — by day-of-week, by market, top symbols, win/loss streaks, max drawdown, and **performance by setup** (the feature competitors paywall)
+- 🏷 **Setup tags** — name your setups ("breakout", "reversal"…) and see which ones actually make money
 - 🚦 **Risk Gate** — position sizing for crypto (units), forex (lots × 100k), stocks (shares) + R:R planning
 - 📒 **Journal** — filter by market, result, and symbol; delete-safe history
 - 🔍 **Weekly Review** — tilt events, emotion × performance table, most frequent mistakes
+- 📥 **CSV import + JSON backup** — bring trades in, own your data
 - 📸 **Share card** — one-click branded PNG of your weekly discipline report
 - 🌗 Dark (default) & light themes · ⌨️ `1`–`4` to switch views
 - 🌍 **All markets, USD-denominated** — tag each trade with its market
@@ -51,9 +54,10 @@ Or simply use the [live demo](https://arj-codex.github.io/tradeforge).
 | Key | Action |
 | --- | --- |
 | `1` | Dashboard |
-| `2` | Journal |
-| `3` | Risk Gate |
-| `4` | Review |
+| `2` | Analytics |
+| `3` | Journal |
+| `4` | Risk Gate |
+| `5` | Review |
 
 ## 🛠 Tech Stack
 

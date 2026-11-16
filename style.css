@@ -679,6 +679,48 @@ body {
 .footer a { color: var(--text-2); font-weight: 600; text-decoration: none; }
 .footer a:hover { color: #FF4D57; }
 
+/* ---------- Getting started ---------- */
+.getting-started { border-color: rgb(201 150 44 / 0.35); }
+
+.getting-started .steps {
+  margin: 4px 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.92rem;
+}
+
+/* ---------- Analytics tables ---------- */
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.analytics-table th {
+  text-align: left;
+  padding: 7px 10px;
+  color: var(--text-2);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.analytics-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--surface-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.analytics-table tr:last-child td { border-bottom: none; }
+
+.analytics-table td.num { font-weight: 700; }
+.analytics-table td.pos { color: var(--success); }
+.analytics-table td.neg { color: #FF4D57; }
+.analytics-table td.dim { color: var(--text-2); }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
   .tabs { flex-wrap: wrap; }
