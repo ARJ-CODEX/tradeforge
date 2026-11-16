@@ -5,6 +5,7 @@
 
 /* ---------- Design tokens ---------- */
 :root {
+  color-scheme: dark; /* native dropdowns, date picker & scrollbars render dark */
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "Cascadia Code", "Fira Code", Consolas, monospace;
 
@@ -32,6 +33,7 @@
 }
 
 [data-theme="light"] {
+  color-scheme: light;
   --bg-1: #F4F4F6;
   --bg-2: #E8E8EC;
   --surface: rgb(255 255 255 / 0.8);
@@ -303,6 +305,12 @@ body {
 .form-row select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Native select popup options must stay readable on the dark theme */
+[data-theme="dark"] select option {
+  background-color: #141419;
+  color: #F5F5F7;
 }
 
 .seg {
