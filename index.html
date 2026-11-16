@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TradeForge — a fast, private, local-first trading journal with a pre-trade risk gate and a discipline tiltmeter. Crypto, forex, stocks. Your data stays yours." />
+  <title>TradeForge — Trading Journal & Risk Guard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚡</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+
+    <!-- ======= Header ======= -->
+    <header class="header">
+      <a class="brand" href="./" aria-label="TradeForge home">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-name">Trade<span class="brand-accent">Forge</span></span>
+        <span class="brand-sub">Trading Journal</span>
+      </a>
+      <div class="header-actions">
+        <button id="share-btn" class="icon-btn" title="Share weekly stats (PNG card)" aria-label="Share weekly stats">📸</button>
+        <button id="settings-btn" class="icon-btn" title="Settings & data" aria-label="Open settings">⚙️</button>
+        <a class="icon-btn" href="https://github.com/ARJ-CODEX/tradeforge" target="_blank" rel="noopener" title="View on GitHub" aria-label="View source code on GitHub">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+      </div>
+    </header>
+
+    <!-- ======= View tabs ======= -->
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab-btn active" data-view="dashboard" role="tab" aria-selected="true">📊 Dashboard</button>
+      <button class="tab-btn" data-view="journal" role="tab" aria-selected="false">📒 Journal</button>
+      <button class="tab-btn" data-view="risk" role="tab" aria-selected="false">🚦 Risk Gate</button>
+      <button class="tab-btn" data-view="review" role="tab" aria-selected="false">🔍 Review</button>
+    </nav>
+
+    <!-- ======= Dashboard ======= -->
+    <section class="view active" id="view-dashboard" aria-label="Dashboard">
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-value" id="d-trades">0</span><span class="stat-label">Trades</span></div>
+        <div class="stat-card"><span class="stat-value" id="d-winrate">—</span><span class="stat-label">Win rate</span></div>
+        <div class="stat-card"><span class="stat-value" id="d-totalr">—</span><span class="stat-label">Total R</span></div>
+        <div class="stat-card"><span class="stat-value" id="d-pf">—</span><span class="stat-label">Profit factor</span></div>
+        <div class="stat-card gold"><span class="stat-value" id="d-net">—</span><span class="stat-label">Net P&L (USD)</span></div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">Equity curve — cumulative P&L</h3>
+        <canvas id="equity-canvas" class="chart" height="220"></canvas>
+        <p class="chart-empty" id="equity-empty">Log your first trade to forge the curve. ⚡</p>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">Tiltmeter — discipline over your last 10 trades</h3>
+        <div class="tilt-wrap">
+          <canvas id="tilt-canvas" width="260" height="160"></canvas>
+          <div class="tilt-legend">
+            <span class="tilt-chip ok">Disciplined</span>
+            <span class="tilt-chip warn">Watch out</span>
+            <span class="tilt-chip bad">Tilting</span>
+            <p class="tilt-verdict" id="tilt-verdict">—</p>
+          </div>
+        </div>
+        <p class="insight" id="tilt-insight"></p>
+      </div>
+    </section>
+
+    <!-- ======= Journal ======= -->
+    <section class="view" id="view-journal" aria-label="Trade journal">
+      <form class="panel trade-form" id="trade-form" autocomplete="off">
+        <h3 class="panel-title">Log a trade — under 30 seconds</h3>
+        <div class="form-row">
+          <label>Market
+            <select id="t-market">
+              <option value="crypto">Crypto</option>
+              <option value="forex">Forex</option>
+              <option value="stocks">Stocks</option>
+            </select>
+          </label>
+          <label>Symbol
+            <input type="text" id="t-symbol" placeholder="BTCUSDT" maxlength="16" required />
+          </label>
+          <label>Direction
+            <span class="seg" id="t-direction">
+              <button type="button" class="seg-btn active long" data-dir="long">▲ Long</button>
+              <button type="button" class="seg-btn" data-dir="short">▼ Short</button>
+            </span>
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Entry <input type="number" id="t-entry" step="any" min="0" required /></label>
+          <label>Stop <input type="number" id="t-stop" step="any" min="0" /></label>
+          <label>Exit <input type="number" id="t-exit" step="any" min="0" required /></label>
+          <label id="t-size-label">Units <input type="number" id="t-size" step="any" min="0" required /></label>
+          <label>Contract (units per 1)
+            <input type="number" id="t-contract" step="any" min="0" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Emotion
+            <select id="t-emotion">
+              <option value="focused">Focused</option>
+              <option value="confident">Confident</option>
+              <option value="neutral" selected>Neutral</option>
+              <option value="stressed">Stressed</option>
+              <option value="impulsive">Impulsive</option>
+            </select>
+          </label>
+          <label>Date
+            <input type="date" id="t-date" required />
+          </label>
+          <label class="notes-label">Notes
+            <input type="text" id="t-notes" placeholder="What did you see?" maxlength="140" />
+          </label>
+        </div>
+        <div class="form-row chips-row">
+          <span class="chips-label">Mistakes:</span>
+          <span class="chips" id="t-mistakes"></span>
+        </div>
+        <div class="live-calc" id="live-calc" aria-live="polite"></div>
+        <div class="editor-actions">
+          <button type="submit" class="btn btn-primary">⚡ Log Trade</button>
+        </div>
+      </form>
+
+      <div class="panel">
+        <div class="filter-bar">
+          <select id="f-market" aria-label="Filter by market">
+            <option value="">All markets</option>
+            <option value="crypto">Crypto</option>
+            <option value="forex">Forex</option>
+            <option value="stocks">Stocks</option>
+          </select>
+          <select id="f-result" aria-label="Filter by result">
+            <option value="">All results</option>
+            <option value="win">Wins</option>
+            <option value="loss">Losses</option>
+          </select>
+          <input type="text" id="f-symbol" placeholder="🔍 Symbol…" maxlength="16" />
+        </div>
+        <ul class="trade-list" id="trade-list"></ul>
+        <p class="list-empty" id="list-empty">No trades yet. Log your first one above! 📒</p>
+      </div>
+    </section>
+
+    <!-- ======= Risk Gate ======= -->
+    <section class="view" id="view-risk" aria-label="Risk gate">
+      <form class="panel risk-form" id="risk-form" autocomplete="off">
+        <h3 class="panel-title">🚦 Pre-trade risk gate</h3>
+        <p class="hint-line">Sizing is computed so a stop-out costs exactly your risk %. Entry and stop required.</p>
+        <div class="form-row">
+          <label>Risk %
+            <input type="number" id="r-risk" step="any" min="0" max="100" />
+          </label>
+          <label>Market
+            <select id="r-market">
+              <option value="crypto">Crypto</option>
+              <option value="forex">Forex</option>
+              <option value="stocks">Stocks</option>
+            </select>
+          </label>
+          <label>Symbol
+            <input type="text" id="r-symbol" placeholder="BTCUSDT" maxlength="16" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Entry <input type="number" id="r-entry" step="any" min="0" /></label>
+          <label>Stop <input type="number" id="r-stop" step="any" min="0" /></label>
+          <label>Target <input type="number" id="r-target" step="any" min="0" /></label>
+        </div>
+        <div class="risk-output" id="risk-output">
+          <p class="risk-hint">Fill entry + stop to forge your position size.</p>
+        </div>
+      </form>
+    </section>
+
+    <!-- ======= Review ======= -->
+    <section class="view" id="view-review" aria-label="Weekly review">
+      <div class="panel">
+        <h3 class="panel-title">This week</h3>
+        <div class="stat-grid compact">
+          <div class="stat-card"><span class="stat-value" id="w-trades">0</span><span class="stat-label">Trades</span></div>
+          <div class="stat-card"><span class="stat-value" id="w-winrate">—</span><span class="stat-label">Win rate</span></div>
+          <div class="stat-card"><span class="stat-value" id="w-net">—</span><span class="stat-label">Net P&L</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Tilt events — where discipline broke</h3>
+        <ul class="event-list" id="tilt-events"></ul>
+        <p class="list-empty" id="tilt-empty">Clean week. Zero rule breaks. 🏆</p>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Emotion × performance</h3>
+        <ul class="insight-list" id="emotion-insights"></ul>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Most frequent mistakes</h3>
+        <ul class="insight-list" id="mistake-insights"></ul>
+        <p class="list-empty" id="mistake-empty">No mistakes tagged yet — keep it that way! 🛡</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>
+        Forged with ⚡ by
+        <a href="https://github.com/ARJ-CODEX" target="_blank" rel="noopener">ARJ-CODEX</a>
+        · Your data stays in a file you own ·
+        <a href="https://github.com/ARJ-CODEX/tradeforge" target="_blank" rel="noopener">Source code</a>
+      </p>
+    </footer>
+
+  </main>
+
+  <!-- ======= Settings & data ======= -->
+  <div class="modal-overlay" id="settings-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Settings and data">
+      <div class="modal-header">
+        <h2>⚙️ Settings & Data</h2>
+        <button class="icon-btn" id="settings-close" aria-label="Close settings">✕</button>
+      </div>
+      <div class="settings-grid">
+        <label>Account balance (USD)
+          <input type="number" id="s-balance" step="any" min="0" />
+        </label>
+        <label>Risk limit per trade (%)
+          <input type="number" id="s-risklimit" step="any" min="0" max="100" />
+        </label>
+      </div>
+      <p class="hint-line">The Risk Gate warns when a trade risks more than this limit.</p>
+      <h3 class="panel-title">You own your data (Obsidian model)</h3>
+      <div class="io-row">
+        <button class="btn btn-ghost btn-tiny" id="export-json">⬇ Backup JSON</button>
+        <button class="btn btn-ghost btn-tiny" id="import-json">⬆ Restore JSON</button>
+        <button class="btn btn-ghost btn-tiny" id="export-csv">⬇ Export CSV</button>
+        <input type="file" id="import-file" accept=".json,.csv" hidden />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-small" id="settings-cancel">Cancel</button>
+        <button class="btn btn-primary btn-small" id="settings-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
