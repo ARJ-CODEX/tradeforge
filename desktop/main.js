@@ -5,23 +5,28 @@ const { app, BrowserWindow, Menu, shell } = require("electron");
 const path = require("path");
 
 function createWindow() {
+  const webDir = app.isPackaged
+    ? path.join(process.resourcesPath, "web")
+    : path.join(__dirname, "..");
+
+  const iconPath = app.isPackaged
+    ? path.join(webDir, "icon.png")
+    : path.join(__dirname, "build", "icon.png");
+
   const win = new BrowserWindow({
+    title: "TradeForge — Trading Journal & Risk Guard",
     width: 1100,
     height: 800,
     minWidth: 480,
     minHeight: 600,
     backgroundColor: "#0A0A0C",
-    icon: path.join(__dirname, "build", "icon.png"),
+    icon: iconPath,
     autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true,
       sandbox: true,
     },
   });
-
-  const webDir = app.isPackaged
-    ? path.join(process.resourcesPath, "web")
-    : path.join(__dirname, "..");
 
   win.loadFile(path.join(webDir, "index.html"));
 

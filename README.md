@@ -47,7 +47,24 @@ npx serve .
 
 Or simply use the [live demo](https://arj-codex.github.io/tradeforge).
 
-> 🖥 A native desktop build (Windows/macOS via Electron) is planned — the web version is fully functional today.
+## 🖥 Desktop (Windows)
+
+No installer, no admin rights — one portable `.exe`:
+
+1. Grab **`TradeForge-<version>-portable.exe`** from [**Releases**](https://github.com/ARJ-CODEX/tradeforge/releases).
+2. Run it. That's it — same app, same local-first data, in its own window.
+
+> First launch of the portable build takes a few extra seconds while it unpacks. Your journal data stays local either way.
+
+**Build it yourself** (Node.js 18+ required):
+
+```bash
+cd desktop
+npm install
+npm run dist   # → dist/TradeForge-<version>-portable.exe
+```
+
+The desktop shell is Electron with `contextIsolation` and `sandbox` enabled, zero runtime dependencies, and loads only the same static files the web version uses.
 
 ## ⌨️ Keyboard Shortcuts
 
@@ -69,17 +86,21 @@ Or simply use the [live demo](https://arj-codex.github.io/tradeforge).
 
 ```
 tradeforge/
-├── index.html   # Markup
-├── style.css    # ARJ Forge identity (black · red · gold)
-├── app.js       # Trade math, journal, risk gate, tiltmeter, charts
-└── README.md
+├── index.html      # Markup
+├── style.css       # ARJ Forge identity (black · red · gold)
+├── app.js          # Trade math, journal, risk gate, tiltmeter, charts
+├── icon.png        # Brand icon (web favicon + desktop window)
+└── desktop/        # Electron shell → portable Windows .exe
+    ├── main.js
+    ├── package.json
+    └── make-ico.cjs
 ```
 
 ## 🗺 Roadmap
 
-- 🖥 Native desktop app (Electron shell) with .exe / .dmg installers
 - 📥 Broker CSV import (auto-fill your trade history)
 - 🧠 AI weekly coach — reads your journal and calls out patterns
+- 📦 Android APK (direct download, no Play Store)
 
 ## ™ Trademark & Branding
 
