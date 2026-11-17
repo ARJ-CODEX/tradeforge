@@ -1,0 +1,38 @@
+{
+  "name": "tradeforge",
+  "productName": "TradeForge",
+  "version": "1.0.0",
+  "description": "TradeForge — trading journal & risk guard. Local-first, private.",
+  "author": "ARJ-CODEX",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "io.github.arj-codex.tradeforge",
+    "productName": "TradeForge",
+    "copyright": "Copyright (c) 2026 ARJ-CODEX — TradeForge Brand License",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js"
+    ],
+    "extraResources": [
+      {
+        "from": "../",
+        "to": "web",
+        "filter": ["index.html", "style.css", "app.js", "icon.png"]
+      }
+    ],
+    "win": {
+      "target": ["portable"],
+      "icon": "build/icon.png"
+    }
+  }
+}
