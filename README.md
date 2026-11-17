@@ -1,9 +1,14 @@
+<p align="center">
+  <img src="icon.png" width="140" alt="TradeForge icon — nitro TF monogram with a rising gold arrow" />
+</p>
+
 # ⚡ TradeForge
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-Brand%20Protected-red.svg" alt="License: TradeForge Brand License — no rebranding" />
   <img src="https://img.shields.io/badge/dependencies-0-brightgreen.svg" alt="Zero dependencies" />
   <img src="https://img.shields.io/badge/data-local--first-teal.svg" alt="Local-first" />
+  <img src="https://img.shields.io/badge/platforms-web%20%7C%20windows%20%7C%20android-blue.svg" alt="Web · Windows · Android" />
   <img src="https://img.shields.io/badge/prs-welcome-orange.svg" alt="PRs welcome" />
 </p>
 
