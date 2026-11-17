@@ -47,6 +47,18 @@ npx serve .
 
 Or simply use the [live demo](https://arj-codex.github.io/tradeforge).
 
+## 🤖 Android
+
+**Direct APK — no Play Store, no account:**
+
+1. Grab **`TradeForge-android.apk`** from [**Releases**](https://github.com/ARJ-CODEX/tradeforge/releases).
+2. Open it on your phone → allow "install unknown apps" for your browser when asked.
+3. Done — the nitro TF icon lands on your home screen. 100% offline, zero permissions.
+
+**Or install as a PWA** (no APK at all): open [the web app](https://arj-codex.github.io/tradeforge) in Chrome → **Add to Home screen**. Same app, full-screen, works offline.
+
+The APK is built entirely in the cloud (GitHub Actions + Capacitor) — contributors don't need Android Studio. Run it from the Actions tab, or push a `v*` tag and the APK attaches to the release automatically.
+
 ## 🖥 Desktop (Windows)
 
 No installer, no admin rights — one portable `.exe`:
@@ -89,18 +101,23 @@ tradeforge/
 ├── index.html      # Markup
 ├── style.css       # ARJ Forge identity (black · red · gold)
 ├── app.js          # Trade math, journal, risk gate, tiltmeter, charts
-├── icon.png        # Brand icon (web favicon + desktop window)
-└── desktop/        # Electron shell → portable Windows .exe
-    ├── main.js
-    ├── package.json
-    └── make-ico.cjs
+├── manifest.json   # PWA manifest (Add to Home Screen)
+├── sw.js           # Service worker (offline)
+├── icon.png        # Brand icon (web favicon, desktop, Android launcher)
+├── desktop/        # Electron shell → portable Windows .exe
+│   ├── main.js
+│   ├── package.json
+│   └── make-ico.cjs
+└── mobile/         # Capacitor config → cloud-built Android APK
+    ├── capacitor.config.json
+    └── package.json
 ```
 
 ## 🗺 Roadmap
 
 - 📥 Broker CSV import (auto-fill your trade history)
 - 🧠 AI weekly coach — reads your journal and calls out patterns
-- 📦 Android APK (direct download, no Play Store)
+- 🔐 Release-signed Android APK (currently debug-signed)
 
 ## ™ Trademark & Branding
 
