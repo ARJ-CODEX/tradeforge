@@ -40,7 +40,10 @@ jobs:
       - name: Create Android project
         run: cd mobile && npx cap add android && npx cap sync
 
-      # Brand the launcher icons with the nitro TF mark (ImageMagick is preinstalled)
+      # Brand the launcher icons with the nitro TF mark
+      - name: Install ImageMagick
+        run: sudo apt-get update -q && sudo apt-get install -y -q imagemagick
+
       - name: Brand app icons
         run: |
           cd mobile
@@ -50,9 +53,15 @@ jobs:
             set -- $pair
             dir=$1; size=$2
             [ -d "$RES/$dir" ] || continue
-            [ -f "$RES/$dir/ic_launcher.png" ] && convert "$SRC" -resize ${size}x${size} "$RES/$dir/ic_launcher.png"
-            [ -f "$RES/$dir/ic_launcher_round.png" ] && convert "$SRC" -resize ${size}x${size} "$RES/$dir/ic_launcher_round.png"
-            [ -f "$RES/$dir/ic_launcher_foreground.png" ] && convert "$SRC" -resize $((size*66/100))x$((size*66/100)) -background none -gravity center -extent ${size}x${size} "$RES/$dir/ic_launcher_foreground.png"
+            if [ -f "$RES/$dir/ic_launcher.png" ]; then
+              convert "$SRC" -resize ${size}x${size} "$RES/$dir/ic_launcher.png"
+            fi
+            if [ -f "$RES/$dir/ic_launcher_round.png" ]; then
+              convert "$SRC" -resize ${size}x${size} "$RES/$dir/ic_launcher_round.png"
+            fi
+            if [ -f "$RES/$dir/ic_launcher_foreground.png" ]; then
+              convert "$SRC" -resize $((size*66/100))x$((size*66/100)) -background none -gravity center -extent ${size}x${size} "$RES/$dir/ic_launcher_foreground.png"
+            fi
           done
 
       - name: Build APK
