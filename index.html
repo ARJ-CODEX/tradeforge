@@ -4,8 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="TradeForge — a fast, private, local-first trading journal with a pre-trade risk gate and a discipline tiltmeter. Crypto, forex, stocks. Your data stays yours." />
+  <meta name="theme-color" content="#0A0A0C" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TradeForge" />
   <title>TradeForge — Trading Journal & Risk Guard</title>
   <link rel="icon" type="image/png" href="icon.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -288,5 +295,17 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="app.js"></script>
+  <script>
+    // PWA: register the offline service worker (web only — skipped in Electron/file://)
+    if (
+      "serviceWorker" in navigator &&
+      (location.protocol === "https:" ||
+        ["localhost", "127.0.0.1"].includes(location.hostname))
+    ) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

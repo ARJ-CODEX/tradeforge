@@ -1,0 +1,14 @@
+{
+  "appId": "io.github.arjcodex.tradeforge",
+  "appName": "TradeForge",
+  "webDir": "www",
+  "backgroundColor": "#0A0A0C",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}

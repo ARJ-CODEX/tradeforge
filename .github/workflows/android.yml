@@ -1,0 +1,81 @@
+name: Android APK
+
+# Builds the TradeForge APK in the cloud (GitHub-hosted runner) so no
+# local Android SDK / Gradle is needed. Triggered manually or on version tags.
+# The APK is attached to the GitHub Release automatically (direct-download
+# distribution — no Play Store, per the ARJ Forge mobile policy).
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # Fresh web assets straight from the repo root
+      - name: Copy web assets
+        run: |
+          mkdir -p mobile/www
+          cp index.html style.css app.js icon.png manifest.json mobile/www/
+
+      - name: Install Capacitor
+        run: cd mobile && npm ci
+
+      - name: Create Android project
+        run: cd mobile && npx cap add android && npx cap sync
+
+      # Brand the launcher icons with the nitro TF mark (ImageMagick is preinstalled)
+      - name: Brand app icons
+        run: |
+          cd mobile
+          SRC=../icon.png
+          RES=android/app/src/main/res
+          for pair in "mipmap-mdpi 48" "mipmap-hdpi 72" "mipmap-xhdpi 96" "mipmap-xxhdpi 144" "mipmap-xxxhdpi 192"; do
+            set -- $pair
+            dir=$1; size=$2
+            [ -d "$RES/$dir" ] || continue
+            [ -f "$RES/$dir/ic_launcher.png" ] && convert "$SRC" -resize ${size}x${size} "$RES/$dir/ic_launcher.png"
+            [ -f "$RES/$dir/ic_launcher_round.png" ] && convert "$SRC" -resize ${size}x${size} "$RES/$dir/ic_launcher_round.png"
+            [ -f "$RES/$dir/ic_launcher_foreground.png" ] && convert "$SRC" -resize $((size*66/100))x$((size*66/100)) -background none -gravity center -extent ${size}x${size} "$RES/$dir/ic_launcher_foreground.png"
+          done
+
+      - name: Build APK
+        run: cd mobile/android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+
+      - name: Rename APK
+        run: cp mobile/android/app/build/outputs/apk/debug/app-debug.apk TradeForge-android.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TradeForge-android-apk
+          path: TradeForge-android.apk
+
+      - name: Attach APK to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TradeForge-android.apk
+          body: |
+            🤖 **TradeForge for Android** — direct APK download.
+
+            **Install:** download `TradeForge-android.apk` → open it → allow "install unknown apps" for your browser when asked. Done.
+
+            - 100% offline, your journal stays on your phone
+            - No Play Store, no account, no permissions requested
+            - First ARJ Forge Android build ⚡

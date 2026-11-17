@@ -1,0 +1,19 @@
+{
+  "name": "TradeForge — Trading Journal & Risk Guard",
+  "short_name": "TradeForge",
+  "description": "Local-first trading journal with a pre-trade risk gate and a discipline tiltmeter. Crypto, forex, stocks.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0A0A0C",
+  "theme_color": "#0A0A0C",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
